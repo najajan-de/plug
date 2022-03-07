@@ -1,170 +1,118 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Tile = exports.Board = void 0;
+const p5_1 = __importDefault(require("p5"));
+const p5_js_svg_1 = __importDefault(require("p5.js-svg"));
 class Board {
     constructor(board_width, board_height) {
         this.width = board_width;
         this.height = board_height;
         this.tiles = [];
-        this.grid = math.zeros(this.width, this.height);
-        console.log("Borad: " + board_width + ", " + board_height);
+        this.grid = [[]];
+        console.log("Board: " + board_width + ", " + board_height);
     }
-
     fillEmptyTiles() {
         console.log("Fill empty tiles");
         // let grid = math.zeros(this.width, this.height);
         //this.refreshGrid();
-        
-        console.log("GRID")
+        console.log("GRID");
         console.log(this.grid);
-        this.grid.forEach((value, index) => {
-            if (value == 0) {
-                console.log(index);
-                this.addTile(new Tile(index))
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                if (this.grid[i] == undefined || this.grid[i][j] == undefined) {
+                    this.addTile(new Tile([i, j]));
+                }
             }
-        })
-                
+        }
     }
-
-    refreshGrid(){
+    refreshGrid() {
         for (let tile of this.tiles) {
-            // let dx = [tile.position[0],tile.position[0]+tile.width-1]
-            let dx = [...Array(tile.width).keys()].map(x => x+tile.position[0]); 
-            if (tile.width == 1) {
-                dx = tile.position[0]
+            for (let i = tile.position[0]; i < tile.position[0] + tile.width; i++) {
+                for (let j = tile.position[1]; j < tile.position[1] + tile.height; j++) {
+                    this.grid[i][j] = tile;
+                }
             }
-            // let dy =[tile.position[1],tile.position[1]+tile.height-1];
-            let dy = [...Array(tile.height).keys()].map(x => x+tile.position[1]);
-            if (tile.height == 1) {
-                dy = tile.position[1]
-            }
-
-            console.log(dx + " "+ dy);
-            console.log(tile.width+ " "+ tile.height);
-            console.log(math.matrix().resize([tile.width,tile.height],tile));
-            console.log(this.grid.subset(math.index(dx,dy)));
-            this.grid = this.grid.subset(math.index(dx,dy),math.matrix().resize([tile.width,tile.height],tile))
         }
         console.log(this.grid);
     }
-
     addTile(tile) {
         this.tiles.push(tile);
-
-        let dx = [...Array(tile.width).keys()].map(x => x+tile.position[0]); 
-            if (tile.width == 1) {
-                dx = tile.position[0]
+        for (let i = tile.position[0]; i < tile.position[0] + tile.width; i++) {
+            for (let j = tile.position[1]; j < tile.position[1] + tile.height; j++) {
+                if (!this.grid[i]) {
+                    this.grid[i] = [];
+                }
+                this.grid[i][j] = tile;
             }
-        
-        let dy = [...Array(tile.height).keys()].map(x => x+tile.position[1]);
-        if (tile.height == 1) {
-            dy = tile.position[1]
         }
-
-        console.log(dx + " "+ dy);
-            console.log(tile.width+ " "+ tile.height);
-            console.log(math.matrix().resize([tile.width,tile.height],tile));
-            console.log(this.grid.subset(math.index(dx,dy)));
-
-        this.grid = this.grid.subset(math.index(dx,dy),math.matrix().resize([tile.width,tile.height],tile))
     }
-
     getTileAtPosition(position) {
-        for( let tile of this.tiles) {
+        for (let tile of this.tiles) {
             if (tile.isTileAtPosition(position)) {
                 return tile;
             }
         }
-        return undefined;
+        return null;
     }
-
-    makePathFromCoordinates(coordinates) {
+    makePathFromCoordinates(coordinateList) {
         let prev;
-        for(let pos in coordinates) {
+        for (let pos of coordinateList) {
             let tile = this.getTileAtPosition(pos);
-            if(prev) {
+            if (prev) {
                 prev.nextTile = tile;
             }
             prev = tile;
         }
     }
 }
-        
-
+exports.Board = Board;
 class Tile {
-    constructor(pos, width=1, height=1) {
+    constructor(pos, width = 1, height = 1) {
         this.position = pos;
         this.width = width;
         this.height = height;
+        this.nextTile = null;
     }
-
-    getPositionInGrid(grid_width, grid_height) {
-        let grid = math.zeros(grid_width, grid_height);
-        for (let i = 0; i < this.width;i++) {
-            for (let j = 0; j < this.height; j++) {
-                grid.subset(math.index(this.position[0]+i,this.position[1]+j),1)
-            }   
-        }
-        console.log(this.position + " " + this.width + " " + this.height);
-        console.log(grid)
-        return grid;
-    }
-
     isTileAtPosition(pos) {
-        if(pos[0] - this.position[0] < this.width && pos[1] - this.position[1] < this.height) {
+        if (pos[0] - this.position[0] < this.width && pos[1] - this.position[1] < this.height) {
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
 }
-
+exports.Tile = Tile;
 function generateDefaultBoard() {
-    let board = new Board(8,8);
-    board.addTile(new Tile([7,1],1,2));
-    board.addTile(new Tile([3,7],2,1));
-    board.addTile(new Tile([0,6],2,2));
-    board.addTile(new Tile([0,3],1,2));
-    board.addTile(new Tile([5,1],2,3));
-    board.addTile(new Tile([5,4],1,2));
-    board.addTile(new Tile([3,5],2,1));
-    board.addTile(new Tile([3,3],2,2));
-
+    let board = new Board(8, 8);
+    board.addTile(new Tile([7, 1], 1, 2));
+    board.addTile(new Tile([3, 7], 2, 1));
+    board.addTile(new Tile([0, 6], 2, 2));
+    board.addTile(new Tile([0, 3], 1, 2));
+    board.addTile(new Tile([5, 1], 2, 3));
+    board.addTile(new Tile([5, 4], 1, 2));
+    board.addTile(new Tile([3, 5], 2, 1));
+    board.addTile(new Tile([3, 3], 2, 2));
     board.fillEmptyTiles();
-
     return board;
 }
-
-let board = generateDefaultBoard()
+let board = generateDefaultBoard();
 console.log(board.tiles);
-
-
-let s = function (sketch) {
-    sketch.setup = function () {
+(0, p5_js_svg_1.default)(p5_1.default);
+let sketch = function (p) {
+    p.setup = function () {
         let spacing = 20;
-        createCanvas(board.width*spacing, board.height*spacing, SVG);
-        
-        stroke(2);
-        noFill();
-        for(let tile of board.tiles) {
-            rect(spacing*tile.position[0],spacing*tile.position[1],spacing*tile.width,spacing*tile.height);
+        p.createCanvas(board.width * spacing, board.height * spacing, p.SVG);
+        p.stroke(2);
+        p.noFill();
+        for (let tile of board.tiles) {
+            p.rect(spacing * tile.position[0], spacing * tile.position[1], spacing * tile.width, spacing * tile.height);
         }
-        
     };
-
-    sketch.draw = function() {
-
-    }
-}
-let myp5 = new p5(s);
-
-
-
-
-function generate_grid(width = 6, height = 6) {
-    const dir = Object.freeze({
-        up: [0,1],
-        left: [-1,0],
-        down: [0,-1],
-        right: [1,0]
-      });
-
-    grid = math.zeros(width, height);
-}
+    p.draw = function () {
+    };
+};
+let myp5 = new p5_1.default(sketch, document.body);
