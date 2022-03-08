@@ -50,14 +50,39 @@ class Board {
         }
     }
     getTileAtPosition(position) {
-        for (let tile of this.tiles) {
-            if (tile.isTileAtPosition(position)) {
-                return tile;
-            }
-        }
-        return null;
+        return this.grid[position[0]][position[1]];
     }
     makePathFromCoordinates(coordinateList) {
+        let fullCoord = [];
+        for (let coordNo = 0; coordNo < coordinateList.length; coordNo++) {
+            let coordStart = coordinateList[coordNo];
+            let coordEnd = coordinateList[coordNo + 1];
+            if (coordStart[0] == coordEnd[0]) {
+                let start = coordStart[1];
+                let end = coordEnd[1];
+                let increment = function (value) { return value++; };
+                if (coordStart[1] > coordEnd[1]) {
+                    increment = function (value) { return value--; };
+                }
+                for (let j = start; j < end; j = increment(j)) {
+                    fullCoord.push([coordStart[0], j]);
+                    console.log(coordNo, j);
+                }
+            }
+            else if (coordStart[1] == coordEnd[1]) {
+                let start = coordStart[0];
+                let end = coordEnd[0];
+                let increment = function (value) { return value++; };
+                if (coordStart[0] > coordEnd[0]) {
+                    increment = function (value) { return value--; };
+                }
+                for (let j = start; j < end; j = increment(j)) {
+                    fullCoord.push([j, coordStart[1]]);
+                    console.log(coordNo, j);
+                }
+            }
+        }
+        console.log("fullCoord: " + fullCoord);
         let prev;
         for (let pos of coordinateList) {
             let tile = this.getTileAtPosition(pos);
@@ -97,6 +122,13 @@ function generateDefaultBoard() {
     board.addTile(new Tile([3, 5], 2, 1));
     board.addTile(new Tile([3, 3], 2, 2));
     board.fillEmptyTiles();
+    board.makePathFromCoordinates([
+        [0, 0],
+        [7, 0],
+        [7, 7],
+        [0, 7],
+        [0, 1],
+    ]);
     return board;
 }
 let board = generateDefaultBoard();
