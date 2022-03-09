@@ -12,6 +12,7 @@ class Board {
         this.height = board_height;
         this.tiles = [];
         this.grid = [[]];
+        this.startTile = null;
         console.log("Board: " + board_width + ", " + board_height);
     }
     fillEmptyTiles() {
@@ -54,39 +55,52 @@ class Board {
     }
     makePathFromCoordinates(coordinateList) {
         let fullCoord = [];
-        for (let coordNo = 0; coordNo < coordinateList.length; coordNo++) {
+        for (let coordNo = 0; coordNo < coordinateList.length - 1; coordNo++) {
             let coordStart = coordinateList[coordNo];
             let coordEnd = coordinateList[coordNo + 1];
-            if (coordStart[0] == coordEnd[0]) {
-                let start = coordStart[1];
-                let end = coordEnd[1];
-                let increment = function (value) { return value++; };
-                if (coordStart[1] > coordEnd[1]) {
-                    increment = function (value) { return value--; };
+            console.log(coordNo + ' ' + coordStart + ' ' + coordEnd);
+            let coordList = [];
+            if (coordStart == coordEnd) {
+                console.log("equal");
+                coordList.push(coordStart);
+            }
+            else if (coordStart[0] == coordEnd[0]) {
+                console.log("x is constant", coordStart[1], coordEnd[1]);
+                let start = Math.min(coordStart[1], coordEnd[1]);
+                let end = Math.max(coordStart[1], coordEnd[1]);
+                for (let j = start; j <= end; j++) {
+                    coordList.push([coordStart[0], j]);
+                    console.log(coordStart[0], j);
                 }
-                for (let j = start; j < end; j = increment(j)) {
-                    fullCoord.push([coordStart[0], j]);
-                    console.log(coordNo, j);
+                console.log("start: " + coordStart[1] + " | end: " + coordEnd[1]);
+                console.log(coordStart[1] > coordEnd[1]);
+                if (coordStart[1] > coordEnd[1]) {
+                    coordList = coordList.reverse();
+                    console.log("reversed");
                 }
             }
             else if (coordStart[1] == coordEnd[1]) {
-                let start = coordStart[0];
-                let end = coordEnd[0];
-                let increment = function (value) { return value++; };
-                if (coordStart[0] > coordEnd[0]) {
-                    increment = function (value) { return value--; };
+                console.log("y is constant", coordStart[0] >> coordEnd[0]);
+                let start = Math.min(coordStart[0], coordEnd[0]);
+                let end = Math.max(coordStart[0], coordEnd[0]);
+                for (let j = start; j <= end; j++) {
+                    coordList.push([j, coordStart[1]]);
+                    console.log(j, coordStart[1]);
                 }
-                for (let j = start; j < end; j = increment(j)) {
-                    fullCoord.push([j, coordStart[1]]);
-                    console.log(coordNo, j);
+                if (coordStart[0] > coordEnd[0]) {
+                    coordList = coordList.reverse();
+                    console.log("reversed");
                 }
             }
+            fullCoord = [...fullCoord, ...coordList];
+            fullCoord.pop();
         }
-        console.log("fullCoord: " + fullCoord);
+        fullCoord.push(coordinateList[coordinateList.length - 1]);
+        console.log(fullCoord);
         let prev;
-        for (let pos of coordinateList) {
+        for (let pos of fullCoord) {
             let tile = this.getTileAtPosition(pos);
-            if (prev) {
+            if (prev && prev != tile) {
                 prev.nextTile = tile;
             }
             prev = tile;
@@ -122,12 +136,36 @@ function generateDefaultBoard() {
     board.addTile(new Tile([3, 5], 2, 1));
     board.addTile(new Tile([3, 3], 2, 2));
     board.fillEmptyTiles();
+    board.startTile = board.getTileAtPosition([0, 0]);
     board.makePathFromCoordinates([
         [0, 0],
         [7, 0],
         [7, 7],
         [0, 7],
         [0, 1],
+        [5, 1]
+    ]);
+    board.makePathFromCoordinates([
+        [5, 3],
+        [5, 5],
+        [2, 5]
+    ]);
+    board.makePathFromCoordinates([
+        [6, 3],
+        [6, 6],
+        [2, 6],
+        [2, 5]
+    ]);
+    board.makePathFromCoordinates([
+        [2, 5],
+        [1, 5],
+        [1, 4],
+        [2, 4],
+        [2, 3],
+        [1, 3],
+        [1, 2],
+        [4, 2],
+        [4, 3]
     ]);
     return board;
 }
@@ -138,11 +176,19 @@ let sketch = function (p) {
     p.setup = function () {
         let spacing = 20;
         p.createCanvas(board.width * spacing, board.height * spacing, p.SVG);
-        p.stroke(2);
+        p.strokeWeight(2);
         p.noFill();
         for (let tile of board.tiles) {
             p.rect(spacing * tile.position[0], spacing * tile.position[1], spacing * tile.width, spacing * tile.height);
         }
+        p.stroke('red');
+        p.beginShape();
+        let tile = board.startTile;
+        while (tile) {
+            p.vertex(tile.position[0] * spacing + spacing / 2, tile.position[1] * spacing + spacing / 2);
+            tile = tile.nextTile;
+        }
+        p.endShape();
     };
     p.draw = function () {
     };
