@@ -123,7 +123,7 @@ export class Board {
         for(let pos of fullCoord) {
             let tile = this.getTileAtPosition(pos);
             if(prev && prev!=tile) {
-                prev.nextTile = tile;
+                prev.nextTiles.push(tile);
             }
             prev = tile;
         }
@@ -135,12 +135,12 @@ export class Tile {
     position: Position;
     width: number;
     height: number;
-    nextTile: Tile | null;
+    nextTiles: Tile[];
     constructor(pos:Position, width=1, height=1) {
         this.position = pos;
         this.width = width;
         this.height = height;
-        this.nextTile = null;
+        this.nextTiles = [];
     }
 
 
@@ -210,29 +210,40 @@ console.log(board.tiles);
 
 p5Svg(p5);
 let sketch = function (p:any) {
+    let spacing = 20;
     p.setup = function () {
-        let spacing = 20;
+        
         p.createCanvas(board.width*spacing, board.height*spacing,p.SVG);
         
+        // Visualize Tiles
         p.strokeWeight(2);
         p.noFill();
         for(let tile of board.tiles) {
             p.rect(spacing*tile.position[0],spacing*tile.position[1],spacing*tile.width,spacing*tile.height);
         }
+
+        // Visualize Path
         p.stroke('red');
         p.beginShape();
-        let tile = board.startTile;
-        while (tile) {
-            p.vertex(tile.position[0]*spacing+spacing/2, tile.position[1]*spacing+spacing/2);
-            tile=tile.nextTile;
-        }
-        p.endShape();
+        p.visualizePath(board.startTile);
 
     };
 
     p.draw = function() {
 
     }
+
+    p.visualizePath = function(tile: Tile) {
+        for(let nextTile of tile.nextTiles) {
+            p.beginShape();
+            p.vertex(tile.position[0]*spacing+spacing/2, tile.position[1]*spacing+spacing/2);
+            p.vertex(nextTile.position[0]*spacing+spacing/2, nextTile.position[1]*spacing+spacing/2);
+            p.endShape();
+            p.visualizePath(nextTile);
+        }
+    }
 }
 
 let myp5 = new p5(sketch, document.body);
+
+

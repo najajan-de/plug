@@ -101,7 +101,7 @@ class Board {
         for (let pos of fullCoord) {
             let tile = this.getTileAtPosition(pos);
             if (prev && prev != tile) {
-                prev.nextTile = tile;
+                prev.nextTiles.push(tile);
             }
             prev = tile;
         }
@@ -113,7 +113,7 @@ class Tile {
         this.position = pos;
         this.width = width;
         this.height = height;
-        this.nextTile = null;
+        this.nextTiles = [];
     }
     isTileAtPosition(pos) {
         if (pos[0] - this.position[0] < this.width && pos[1] - this.position[1] < this.height) {
@@ -173,24 +173,30 @@ let board = generateDefaultBoard();
 console.log(board.tiles);
 (0, p5_js_svg_1.default)(p5_1.default);
 let sketch = function (p) {
+    let spacing = 20;
     p.setup = function () {
-        let spacing = 20;
         p.createCanvas(board.width * spacing, board.height * spacing, p.SVG);
+        // Visualize Tiles
         p.strokeWeight(2);
         p.noFill();
         for (let tile of board.tiles) {
             p.rect(spacing * tile.position[0], spacing * tile.position[1], spacing * tile.width, spacing * tile.height);
         }
+        // Visualize Path
         p.stroke('red');
         p.beginShape();
-        let tile = board.startTile;
-        while (tile) {
-            p.vertex(tile.position[0] * spacing + spacing / 2, tile.position[1] * spacing + spacing / 2);
-            tile = tile.nextTile;
-        }
-        p.endShape();
+        p.visualizePath(board.startTile);
     };
     p.draw = function () {
+    };
+    p.visualizePath = function (tile) {
+        for (let nextTile of tile.nextTiles) {
+            p.beginShape();
+            p.vertex(tile.position[0] * spacing + spacing / 2, tile.position[1] * spacing + spacing / 2);
+            p.vertex(nextTile.position[0] * spacing + spacing / 2, nextTile.position[1] * spacing + spacing / 2);
+            p.endShape();
+            p.visualizePath(nextTile);
+        }
     };
 };
 let myp5 = new p5_1.default(sketch, document.body);
