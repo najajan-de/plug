@@ -7,6 +7,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Tile = exports.Board = void 0;
 const p5_1 = __importDefault(require("p5"));
 const p5_js_svg_1 = __importDefault(require("p5.js-svg"));
+var WallType;
+(function (WallType) {
+    WallType[WallType["None"] = 0] = "None";
+    WallType[WallType["Dashed"] = 1] = "Dashed";
+    WallType[WallType["Line"] = 2] = "Line";
+})(WallType || (WallType = {}));
 class Board {
     constructor(board_width, board_height) {
         this.width = board_width;
@@ -14,6 +20,21 @@ class Board {
         this.tiles = [];
         this.grid = [[]];
         this.startTile = null;
+        this.horizontalWalls = [[]]; // (height+1) x width - matrix
+        this.verticalWalls = [[]]; // height x (width+1) - matrix
+        for (let i = 0; i < this.width; i++) {
+            this.horizontalWalls[i] = [];
+            this.verticalWalls[i] = [];
+            for (let j = 0; j < this.height; j++) {
+                this.horizontalWalls[i][j] = WallType.Line;
+                this.verticalWalls[i][j] = WallType.Line;
+            }
+            this.horizontalWalls[i][this.height] = WallType.Line;
+        }
+        this.verticalWalls[this.width] = [];
+        for (let j = 0; j < this.height; j++) {
+            this.verticalWalls[this.width][j] = WallType.Line;
+        }
         console.log("Board: " + board_width + ", " + board_height);
     }
     fillEmptyTiles() {
@@ -107,6 +128,60 @@ class Board {
             prev = tile;
         }
     }
+    makeWalls() {
+        for (let tile of this.tiles) {
+            this.createWallsForTile(tile);
+        }
+    }
+    createWallsForTile(tile) {
+        console.log(" -- createWallsForTile -- ");
+        console.log(tile);
+        // Inner Walls
+        for (let w = 0; w < tile.width; w++) {
+            for (let h = 0; h < tile.height; h++) {
+                console.log("w = " + (w + tile.position[0]) + " | h = " + (h + tile.position[1]));
+                if (w > 0) {
+                    this.verticalWalls[w + tile.position[0]][h + tile.position[1]] = WallType.None;
+                    console.log("v");
+                }
+                if (h > 0) {
+                    this.horizontalWalls[w + tile.position[0]][h + tile.position[1]] = WallType.None;
+                    console.log("h");
+                }
+            }
+        }
+        // Dashed Line to Next Tiles
+        for (let nextTile of tile.nextTiles) {
+            let ownWalls = this.getListOfOuterWalls(tile);
+            let nextWalls = this.getListOfOuterWalls(nextTile);
+            const equals = (a, b) => a.length === b.length &&
+                a.every((v, i) => v === b[i]);
+            let horizontalWallsTogether = ownWalls.horizontal.filter(value => nextWalls.horizontal.some(e => equals(e, value)));
+            let verticalWallsTogether = ownWalls.vertical.filter(value => nextWalls.vertical.some(e => equals(e, value)));
+            console.log(horizontalWallsTogether);
+            console.log(verticalWallsTogether);
+            for (let hWall of horizontalWallsTogether) {
+                this.horizontalWalls[hWall[0]][hWall[1]] = WallType.Dashed;
+            }
+            for (let vWall of verticalWallsTogether) {
+                this.verticalWalls[vWall[0]][vWall[1]] = WallType.Dashed;
+            }
+        }
+    }
+    getListOfOuterWalls(tile) {
+        let horizontal = [];
+        for (let w = 0; w < tile.width; w++) {
+            horizontal.push([tile.position[0] + w, tile.position[1]]);
+            horizontal.push([tile.position[0] + w, tile.position[1] + tile.height]);
+        }
+        let vertical = [];
+        for (let h = 0; h < tile.height; h++) {
+            vertical.push([tile.position[0], tile.position[1] + h]);
+            vertical.push([tile.position[0] + tile.width, tile.position[1] + h]);
+        }
+        console.log({ horizontal: horizontal, vertical: vertical });
+        return { horizontal: horizontal, vertical: vertical };
+    }
 }
 exports.Board = Board;
 class Tile {
@@ -168,6 +243,9 @@ function generateDefaultBoard() {
         [4, 2],
         [4, 3]
     ]);
+    board.makeWalls();
+    console.log(board.horizontalWalls);
+    console.log(board.verticalWalls);
     return board;
 }
 let board = generateDefaultBoard();
@@ -176,17 +254,53 @@ console.log(board.tiles);
 let sketch = function (p) {
     let spacing = 20;
     p.setup = function () {
-        p.createCanvas(board.width * spacing, board.height * spacing, p.SVG);
+        p.createCanvas((board.width + 1) * spacing, (board.height + 1) * spacing, p.SVG);
         // Visualize Tiles
         p.strokeWeight(2);
         p.noFill();
-        for (let tile of board.tiles) {
-            p.rect(spacing * tile.position[0], spacing * tile.position[1], spacing * tile.width, spacing * tile.height);
+        // for(let tile of board.tiles) {
+        //     p.rect(spacing*tile.position[0],spacing*tile.position[1],spacing*tile.width,spacing*tile.height);
+        // }
+        p.stroke('blue');
+        for (let col = 0; col < board.horizontalWalls.length; col++) {
+            for (let row = 0; row < board.horizontalWalls[col].length; row++) {
+                if (board.horizontalWalls[col][row] == WallType.Dashed) {
+                    setLineDash([3, 3]);
+                }
+                if (board.horizontalWalls[col][row] == WallType.Line) {
+                    setLineDash([1]);
+                }
+                if (board.horizontalWalls[col][row] != WallType.None) {
+                    p.beginShape();
+                    p.vertex(col * spacing, row * spacing);
+                    p.vertex((col + 1) * spacing, row * spacing);
+                    p.endShape();
+                }
+            }
         }
+        p.stroke('green');
+        for (let col = 0; col < board.verticalWalls.length; col++) {
+            for (let row = 0; row < board.verticalWalls[col].length; row++) {
+                if (board.verticalWalls[col][row] == WallType.Dashed) {
+                    setLineDash([3, 3]);
+                }
+                if (board.verticalWalls[col][row] == WallType.Line) {
+                    setLineDash([1]);
+                }
+                if (board.verticalWalls[col][row] != WallType.None) {
+                    p.beginShape();
+                    p.vertex(col * spacing, row * spacing);
+                    p.vertex(col * spacing, (row + 1) * spacing);
+                    p.endShape();
+                }
+            }
+        }
+        p.stroke('black');
+        setLineDash([1]);
         // Visualize Path
         p.stroke('red');
         p.beginShape();
-        p.visualizePath(board.startTile);
+        //p.visualizePath(board.startTile);
     };
     p.draw = function () {
     };
@@ -198,6 +312,9 @@ let sketch = function (p) {
             p.endShape();
             p.visualizePath(nextTile);
         }
+    };
+    let setLineDash = function (list) {
+        p.drawingContext.setLineDash(list);
     };
 };
 let myp5 = new p5_1.default(sketch, document.body);
