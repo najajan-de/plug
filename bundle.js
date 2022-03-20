@@ -37,6 +37,9 @@ class Board {
         }
         console.log("Board: " + board_width + ", " + board_height);
     }
+    /**
+     * Fills all empty flieds of grid with 1x1-sized Tiles
+     */
     fillEmptyTiles() {
         console.log("Fill empty tiles");
         // let grid = math.zeros(this.width, this.height);
@@ -51,6 +54,9 @@ class Board {
             }
         }
     }
+    /**
+     * Refreshes grid variable from tiles array
+     */
     refreshGrid() {
         for (let tile of this.tiles) {
             for (let i = tile.position[0]; i < tile.position[0] + tile.width; i++) {
@@ -61,6 +67,10 @@ class Board {
         }
         console.log(this.grid);
     }
+    /**
+     * Adds a tile to the board: Adding it to the tiles-Array and to the fields in the grid.
+     * @param tile Tile to add to board
+     */
     addTile(tile) {
         this.tiles.push(tile);
         for (let i = tile.position[0]; i < tile.position[0] + tile.width; i++) {
@@ -72,9 +82,19 @@ class Board {
             }
         }
     }
+    /**
+     * Gets the tile on a given position
+     * @param position Position to check for Tile
+     * @returns Tile or undefined
+     */
     getTileAtPosition(position) {
         return this.grid[position[0]][position[1]];
     }
+    /**
+     * Creates the Path from a list of Positions. Between two positions the path will be straight - vertically or horizontally.
+     * Fro each Tile on the path, the nextTile attribute is set.
+     * @param coordinateList List of Positions
+     */
     makePathFromCoordinates(coordinateList) {
         let fullCoord = [];
         for (let coordNo = 0; coordNo < coordinateList.length - 1; coordNo++) {
@@ -128,11 +148,18 @@ class Board {
             prev = tile;
         }
     }
+    /**
+     * Creates the walls for each Tile
+     */
     makeWalls() {
         for (let tile of this.tiles) {
             this.createWallsForTile(tile);
         }
     }
+    /**
+     * Creates the walls for one Tile. Overrides all inner walls and the exit to the next tiles.
+     * @param tile TIle to create the walls for
+     */
     createWallsForTile(tile) {
         console.log(" -- createWallsForTile -- ");
         console.log(tile);
@@ -168,6 +195,11 @@ class Board {
             }
         }
     }
+    /**
+     * Gets the outer Walls of a Tile, horizontally and vertically
+     * @param tile Tile to get the outer walls from
+     * @returns {horizontal: List of horizontal walls, vertical: List of vertical Walls}
+     */
     getListOfOuterWalls(tile) {
         let horizontal = [];
         for (let w = 0; w < tile.width; w++) {
@@ -191,6 +223,11 @@ class Tile {
         this.height = height;
         this.nextTiles = [];
     }
+    /**
+     * Checks whether the Tile is on the given position or not
+     * @param pos Position to check
+     * @returns true, if the Tile is at the position | false, if the Tile is not at the position
+     */
     isTileAtPosition(pos) {
         if (pos[0] - this.position[0] < this.width && pos[1] - this.position[1] < this.height) {
             return true;
@@ -256,11 +293,12 @@ let sketch = function (p) {
     p.setup = function () {
         p.createCanvas((board.width + 1) * spacing, (board.height + 1) * spacing, p.SVG);
         // Visualize Tiles
-        p.strokeWeight(2);
+        p.strokeWeight(1);
         p.noFill();
         // for(let tile of board.tiles) {
         //     p.rect(spacing*tile.position[0],spacing*tile.position[1],spacing*tile.width,spacing*tile.height);
         // }
+        // Draw horizontal Walls
         p.stroke('blue');
         for (let col = 0; col < board.horizontalWalls.length; col++) {
             for (let row = 0; row < board.horizontalWalls[col].length; row++) {
@@ -278,6 +316,7 @@ let sketch = function (p) {
                 }
             }
         }
+        // Draw vertical walls
         p.stroke('green');
         for (let col = 0; col < board.verticalWalls.length; col++) {
             for (let row = 0; row < board.verticalWalls[col].length; row++) {
@@ -295,9 +334,8 @@ let sketch = function (p) {
                 }
             }
         }
-        p.stroke('black');
+        // Draw Path
         setLineDash([1]);
-        // Visualize Path
         p.stroke('red');
         p.beginShape();
         //p.visualizePath(board.startTile);
