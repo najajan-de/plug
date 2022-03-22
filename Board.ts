@@ -8,11 +8,14 @@ export enum WallType {
 export class Board {
     width: number;
     height: number;
+
     tiles: Tile[];
     grid: Tile[][];
     startTile: Tile|null;
+
     horizontalWalls: WallType[][];
     verticalWalls: WallType[][];
+    
     constructor(board_width: number, board_height: number) {
         this.width = board_width;
         this.height = board_height;

@@ -2,12 +2,14 @@ import p5 from 'p5';
 import p5Svg from 'p5.js-svg';
 import { Board, WallType } from './Board';
 import { Tile } from './Tile';
+import { Game } from './Game';
         
 
 
 
 function generateDefaultBoard() {
-    let board = new Board(8,8);
+    let game = new Game(8,8);
+    let board = game.board;
     board.addTile(new Tile([7,1],1,2));
     board.addTile(new Tile([3,7],2,1));
     board.addTile(new Tile([0,6],2,2));
@@ -57,6 +59,7 @@ function generateDefaultBoard() {
     board.makeWalls();
     console.log(board.horizontalWalls);
     console.log(board.verticalWalls);
+    game.assignTasks();
     return board;
 }
 
@@ -83,7 +86,7 @@ let sketch = function (p:any) {
 
         for(let col = 0; col < board.horizontalWalls.length; col ++) {
             for( let row = 0; row < board.horizontalWalls[col].length; row++) {
-                if( board.horizontalWalls[col][row] == WallType.Dashed) {setLineDash([3,3]);}
+                if( board.horizontalWalls[col][row] == WallType.Dashed) {setLineDash([5,10,5]);}
                 if( board.horizontalWalls[col][row] == WallType.Line) {setLineDash([]);}
 
                 if( board.horizontalWalls[col][row] != WallType.None) {
@@ -99,7 +102,7 @@ let sketch = function (p:any) {
         p.stroke('green');
         for(let col = 0; col < board.verticalWalls.length; col ++) {
             for( let row = 0; row < board.verticalWalls[col].length; row++) {
-                if( board.verticalWalls[col][row] == WallType.Dashed) {setLineDash([3,3]);}
+                if( board.verticalWalls[col][row] == WallType.Dashed) {setLineDash([5,10,5]);}
                 if( board.verticalWalls[col][row] == WallType.Line) {setLineDash([]);}
 
                 if( board.verticalWalls[col][row] != WallType.None) {
@@ -110,12 +113,26 @@ let sketch = function (p:any) {
                 }
             }
         }
-   
+
         // Draw Path
-        setLineDash([]);
-        p.stroke('red');
-        p.beginShape();
-        p.visualizePath(board.startTile);
+        // setLineDash([]);
+        // p.stroke('red');
+        // p.beginShape();
+        // p.visualizePath(board.startTile);
+
+        // Draw Tasks (Debug)
+        p.noStroke();
+        p.fill(0);
+        p.textSize(4);
+        p.textAlign(p.CENTER, p.CENTER)
+        for(let tile of board.tiles) {
+            if(tile.task) {
+                p.text(tile.task.formatting,spacing*tile.position[0],spacing*tile.position[1],spacing*tile.width,spacing*tile.height)
+            }
+        }
+        p.noFill();
+        p.strokeWeight(2)
+        
 
     };
 

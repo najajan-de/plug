@@ -7,6 +7,7 @@ class Tile {
         this.width = width;
         this.height = height;
         this.nextTiles = [];
+        this.task = null;
     }
     /**
      * Checks whether the Tile is on the given position or not
@@ -20,6 +21,9 @@ class Tile {
         else {
             return false;
         }
+    }
+    getSizeIdentifier() {
+        return (Math.min(this.width, this.height)) + "x" + (Math.max(this.width, this.height));
     }
 }
 exports.Tile = Tile;

@@ -7,8 +7,10 @@ const p5_1 = __importDefault(require("p5"));
 const p5_js_svg_1 = __importDefault(require("p5.js-svg"));
 const Board_1 = require("./Board");
 const Tile_1 = require("./Tile");
+const Game_1 = require("./Game");
 function generateDefaultBoard() {
-    let board = new Board_1.Board(8, 8);
+    let game = new Game_1.Game(8, 8);
+    let board = game.board;
     board.addTile(new Tile_1.Tile([7, 1], 1, 2));
     board.addTile(new Tile_1.Tile([3, 7], 2, 1));
     board.addTile(new Tile_1.Tile([0, 6], 2, 2));
@@ -52,6 +54,7 @@ function generateDefaultBoard() {
     board.makeWalls();
     console.log(board.horizontalWalls);
     console.log(board.verticalWalls);
+    game.assignTasks();
     return board;
 }
 let board = generateDefaultBoard();
@@ -73,7 +76,7 @@ let sketch = function (p) {
         for (let col = 0; col < board.horizontalWalls.length; col++) {
             for (let row = 0; row < board.horizontalWalls[col].length; row++) {
                 if (board.horizontalWalls[col][row] == Board_1.WallType.Dashed) {
-                    setLineDash([3, 3]);
+                    setLineDash([5, 10, 5]);
                 }
                 if (board.horizontalWalls[col][row] == Board_1.WallType.Line) {
                     setLineDash([]);
@@ -91,7 +94,7 @@ let sketch = function (p) {
         for (let col = 0; col < board.verticalWalls.length; col++) {
             for (let row = 0; row < board.verticalWalls[col].length; row++) {
                 if (board.verticalWalls[col][row] == Board_1.WallType.Dashed) {
-                    setLineDash([3, 3]);
+                    setLineDash([5, 10, 5]);
                 }
                 if (board.verticalWalls[col][row] == Board_1.WallType.Line) {
                     setLineDash([]);
@@ -105,10 +108,22 @@ let sketch = function (p) {
             }
         }
         // Draw Path
-        setLineDash([]);
-        p.stroke('red');
-        p.beginShape();
-        p.visualizePath(board.startTile);
+        // setLineDash([]);
+        // p.stroke('red');
+        // p.beginShape();
+        // p.visualizePath(board.startTile);
+        // Draw Tasks (Debug)
+        p.noStroke();
+        p.fill(0);
+        p.textSize(4);
+        p.textAlign(p.CENTER, p.CENTER);
+        for (let tile of board.tiles) {
+            if (tile.task) {
+                p.text(tile.task.formatting, spacing * tile.position[0], spacing * tile.position[1], spacing * tile.width, spacing * tile.height);
+            }
+        }
+        p.noFill();
+        p.strokeWeight(2);
     };
     p.draw = function () {
     };
